@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-house"></i> Dashboard</h1>
+    <small class="text-muted">{{ current_month }}</small>
+</div>
+
+<!-- Financial Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card card-stat bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Income</h6>
+                        <h3 class="mb-0">${{ total_income|floatformat:2 }}</h3>
+                    </div>
+                    <i class="bi bi-arrow-up-circle stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card card-stat bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Expenses</h6>
+                        <h3 class="mb-0">${{ total_expenses|floatformat:2 }}</h3>
+                    </div>
+                    <i class="bi bi-arrow-down-circle stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card card-stat {% if current_balance >= 0 %}bg-primary{% else %}bg-warning{% endif %} text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Net Balance</h6>
+                        <h3 class="mb-0 {% if current_balance >= 0 %}text-white{% else %}text-dark{% endif %}">
+                            ${{ current_balance|floatformat:2 }}
+                        </h3>
+                    </div>
+                    <i class="bi bi-wallet2 stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Budget Overview -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Budget Overview</h5>
+                <a href="{% url 'budget-create' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-plus"></i> Add Budget
+                </a>
+            </div>
+            <div class="card-body">
+                {% if budget_data %}
+                    {% for budget_info in budget_data %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-semibold">{{ budget_info.budget.category.name }}</span>
+                            <span class="text-muted">
+                                ${{ budget_info.spent|floatformat:2 }} / ${{ budget_info.budget.limit|floatformat:2 }}
+                            </span>
+                        </div>
+                        <div class="progress budget-progress">
+                            <div class="progress-bar {% if budget_info.is_over_budget %}over-budget{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ budget_info.percentage }}%"
+                                 aria-valuenow="{{ budget_info.percentage }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                {{ budget_info.percentage|floatformat:0 }}%
+                            </div>
+                        </div>
+                        {% if budget_info.is_over_budget %}
+                            <small class="text-danger">
+                                <i class="bi bi-exclamation-triangle"></i> Over budget by ${{ budget_info.remaining|floatformat:2|cut:"-" }}
+                            </small>
+                        {% else %}
+                            <small class="text-muted">
+                                ${{ budget_info.remaining|floatformat:2 }} remaining
+                            </small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted">
+                        <i class="bi bi-pie-chart" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="mt-2">No budgets set up yet.</p>
+                        <a href="{% url 'budget-create' %}" class="btn btn-primary">Create Your First Budget</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Expense Breakdown -->
+        {% if expense_breakdown %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Top Expense Categories (This Month)</h5>
+            </div>
+            <div class="card-body">
+                {% for expense in expense_breakdown %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>{{ expense.category__name }}</span>
+                    <span class="fw-semibold">${{ expense.total|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Transactions & Quick Actions -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'transaction-create' %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Add Transaction
+                    </a>
+                    <a href="{% url 'category-create' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-tag"></i> Add Category
+                    </a>
+                    <a href="{% url 'transaction-list' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-list"></i> View All Transactions
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Transactions</h5>
+                <a href="{% url 'transaction-list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                    {% for transaction in recent_transactions %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div>
+                            <div class="fw-semibold">{{ transaction.description|truncatechars:25 }}</div>
+                            <small class="text-muted">
+                                {{ transaction.category.name }} • {{ transaction.date }}
+                            </small>
+                        </div>
+                        <span class="{% if transaction.type == 'Income' %}text-success{% else %}text-danger{% endif %} fw-semibold">
+                            {% if transaction.type == 'Income' %}+{% else %}-{% endif %}${{ transaction.amount|floatformat:2 }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted">
+                        <i class="bi bi-receipt" style="font-size: 2rem; opacity: 0.3;"></i>
+                        <p class="mt-2">No transactions yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
