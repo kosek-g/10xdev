@@ -101,7 +101,7 @@ jobs:
 
     - name: Run safety check
       run: |
-        safety check --requirements requirements.txt
+        safety check -r requirements.txt
 
     - name: Run bandit security linter
       run: |
