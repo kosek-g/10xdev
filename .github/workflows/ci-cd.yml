@@ -10,7 +10,7 @@ env:
   REGISTRY: ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }}.azurecr.io
   IMAGE_NAME: finance-tracker
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
-  AZURE_CONTAINER_GROUP: ${{ secrets.AZURE_CONTAINER_GROUP }}
+  AZURE_CONTAINER_ENV: finance-tracker-env
   AZURE_LOCATION: eastus
 
 jobs:
@@ -185,44 +185,42 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Deploy to Azure Container Instances (Staging)
+    - name: Install Container Apps extension
       run: |
-        az container create \
+        az extension add --name containerapp --upgrade
+
+    - name: Deploy to Azure Container Apps (Staging)
+      run: |
+        # Build image tag with git SHA for unique staging deployments
+        IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+        
+        # Update container app with new image and environment
+        az containerapp update \
+          --name finance-tracker-staging \
           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-          --name ${{ env.AZURE_CONTAINER_GROUP }}-staging \
-          --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-          --location ${{ env.AZURE_LOCATION }} \
-          --dns-name-label finance-tracker-staging-${{ github.run_number }} \
-          --ports 8000 \
-          --os-type Linux \
-          --registry-login-server ${{ env.REGISTRY }} \
-          --registry-username ${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }} \
-          --registry-password ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }} \
-          --environment-variables \
+          --image "${IMAGE_TAG}" \
+          --set-env-vars \
             DJANGO_SETTINGS_MODULE=FinanceTracker.azure_settings \
             SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
             DEBUG=False \
-            WEBSITE_HOSTNAME=finance-tracker-staging-${{ github.run_number }}.eastus.azurecontainer.io \
+            WEBSITE_HOSTNAME=finance-tracker-staging.blackdune-24f7be94.eastus.azurecontainerapps.io \
             AZURE_POSTGRESQL_HOST="${{ secrets.AZURE_POSTGRESQL_HOST }}" \
             AZURE_POSTGRESQL_NAME="${{ secrets.AZURE_POSTGRESQL_NAME }}" \
             AZURE_POSTGRESQL_USER="${{ secrets.AZURE_POSTGRESQL_USER }}" \
-            AZURE_POSTGRESQL_PASSWORD="${{ secrets.AZURE_POSTGRESQL_PASSWORD }}" \
-          --restart-policy OnFailure \
-          --cpu 1 \
-          --memory 2
+            AZURE_POSTGRESQL_PASSWORD="${{ secrets.AZURE_POSTGRESQL_PASSWORD }}"
 
     - name: Wait for deployment
       run: |
-        echo "Waiting for container to be ready..."
+        echo "Waiting for container app to be ready..."
         sleep 60
 
     - name: Run smoke tests
       run: |
-        STAGING_URL="http://finance-tracker-staging-${{ github.run_number }}.eastus.azurecontainer.io:8000"
+        STAGING_URL="https://finance-tracker-staging.blackdune-24f7be94.eastus.azurecontainerapps.io"
         echo "Testing staging deployment at: $STAGING_URL"
         
         # Wait for app to be ready
-        for i in {1..10}; do
+        for i in {1..15}; do
           if curl -f "$STAGING_URL/health/" > /dev/null 2>&1; then
             echo "Staging deployment is healthy!"
             break
@@ -251,56 +249,67 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Deploy to Azure Container Instances (Production)
+    - name: Install Container Apps extension
       run: |
-        # Check if container group exists and delete it
-        if az container show --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name ${{ env.AZURE_CONTAINER_GROUP }} > /dev/null 2>&1; then
-          echo "Stopping existing production container..."
-          az container delete \
+        az extension add --name containerapp --upgrade
+
+    - name: Create or Update Production Container App
+      run: |
+        # Check if production container app exists
+        if az containerapp show --name finance-tracker-prod --resource-group ${{ env.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
+          echo "Updating existing production container app..."
+          az containerapp update \
+            --name finance-tracker-prod \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.AZURE_CONTAINER_GROUP }} \
-            --yes
-          echo "Waiting for container to be fully removed..."
-          sleep 30
+            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+            --set-env-vars \
+              DJANGO_SETTINGS_MODULE=FinanceTracker.azure_settings \
+              SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
+              DEBUG=False \
+              WEBSITE_HOSTNAME=finance-tracker-prod.blackdune-24f7be94.eastus.azurecontainerapps.io \
+              AZURE_POSTGRESQL_HOST="${{ secrets.AZURE_POSTGRESQL_HOST }}" \
+              AZURE_POSTGRESQL_NAME="${{ secrets.AZURE_POSTGRESQL_NAME }}" \
+              AZURE_POSTGRESQL_USER="${{ secrets.AZURE_POSTGRESQL_USER }}" \
+              AZURE_POSTGRESQL_PASSWORD="${{ secrets.AZURE_POSTGRESQL_PASSWORD }}"
+        else
+          echo "Creating new production container app..."
+          az containerapp create \
+            --name finance-tracker-prod \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --environment ${{ env.AZURE_CONTAINER_ENV }} \
+            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+            --target-port 8000 \
+            --ingress external \
+            --registry-server ${{ env.REGISTRY }} \
+            --registry-username ${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }} \
+            --registry-password ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }} \
+            --env-vars \
+              DJANGO_SETTINGS_MODULE=FinanceTracker.azure_settings \
+              SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
+              DEBUG=False \
+              WEBSITE_HOSTNAME=finance-tracker-prod.blackdune-24f7be94.eastus.azurecontainerapps.io \
+              AZURE_POSTGRESQL_HOST="${{ secrets.AZURE_POSTGRESQL_HOST }}" \
+              AZURE_POSTGRESQL_NAME="${{ secrets.AZURE_POSTGRESQL_NAME }}" \
+              AZURE_POSTGRESQL_USER="${{ secrets.AZURE_POSTGRESQL_USER }}" \
+              AZURE_POSTGRESQL_PASSWORD="${{ secrets.AZURE_POSTGRESQL_PASSWORD }}" \
+            --cpu 1.0 \
+            --memory 2.0Gi \
+            --min-replicas 1 \
+            --max-replicas 5
         fi
-        
-        # Create new production container
-        az container create \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-          --name ${{ env.AZURE_CONTAINER_GROUP }} \
-          --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-          --location ${{ env.AZURE_LOCATION }} \
-          --dns-name-label finance-tracker-prod \
-          --ports 8000 \
-          --os-type Linux \
-          --registry-login-server ${{ env.REGISTRY }} \
-          --registry-username ${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }} \
-          --registry-password ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }} \
-          --environment-variables \
-            DJANGO_SETTINGS_MODULE=FinanceTracker.azure_settings \
-            SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
-            DEBUG=False \
-            WEBSITE_HOSTNAME=finance-tracker-prod.eastus.azurecontainer.io \
-            AZURE_POSTGRESQL_HOST="${{ secrets.AZURE_POSTGRESQL_HOST }}" \
-            AZURE_POSTGRESQL_NAME="${{ secrets.AZURE_POSTGRESQL_NAME }}" \
-            AZURE_POSTGRESQL_USER="${{ secrets.AZURE_POSTGRESQL_USER }}" \
-            AZURE_POSTGRESQL_PASSWORD="${{ secrets.AZURE_POSTGRESQL_PASSWORD }}" \
-          --restart-policy OnFailure \
-          --cpu 2 \
-          --memory 4
 
     - name: Wait for production deployment
       run: |
-        echo "Waiting for production container to be ready..."
+        echo "Waiting for production container app to be ready..."
         sleep 90
 
     - name: Run production health checks
       run: |
-        PROD_URL="http://finance-tracker-prod.eastus.azurecontainer.io:8000"
+        PROD_URL="https://finance-tracker-prod.blackdune-24f7be94.eastus.azurecontainerapps.io"
         echo "Testing production deployment at: $PROD_URL"
         
         # Wait for app to be ready
-        for i in {1..15}; do
+        for i in {1..20}; do
           if curl -f "$PROD_URL/health/" > /dev/null 2>&1; then
             echo "Production deployment is healthy!"
             break
@@ -314,16 +323,11 @@ jobs:
         curl -f "$PROD_URL/accounts/login/" || exit 1
         echo "Production deployment tests passed!"
 
-    - name: Cleanup staging environment
+    - name: Cleanup staging environment (optional)
       if: success()
       run: |
-        echo "Cleaning up staging environment..."
-        if az container show --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --name ${{ env.AZURE_CONTAINER_GROUP }}-staging > /dev/null 2>&1; then
-          az container delete \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.AZURE_CONTAINER_GROUP }}-staging \
-            --yes
-        fi
+        echo "Staging environment will remain for testing purposes"
+        # Optionally delete staging: az containerapp delete --name finance-tracker-staging --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --yes
 
   notify:
     name: Notify Deployment Status
@@ -336,7 +340,8 @@ jobs:
       if: needs.deploy-production.result == 'success'
       run: |
         echo "🚀 Deployment successful!"
-        echo "Production URL: http://finance-tracker-prod.eastus.azurecontainer.io:8000"
+        echo "Production URL: https://finance-tracker-prod.blackdune-24f7be94.eastus.azurecontainerapps.io"
+        echo "Staging URL: https://finance-tracker-staging.blackdune-24f7be94.eastus.azurecontainerapps.io"
         
     - name: Notify failure
       if: needs.deploy-production.result == 'failure'

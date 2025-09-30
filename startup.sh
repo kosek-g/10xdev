@@ -37,17 +37,4 @@ python manage.py migrate --noinput
 
 # Start Gunicorn server with production settings
 echo "Starting Gunicorn server..."
-exec gunicorn \
-    --bind 0.0.0.0:8000 \
-    --workers 3 \
-    --worker-class sync \
-    --worker-connections 1000 \
-    --timeout 600 \
-    --keepalive 5 \
-    --max-requests 1000 \
-    --max-requests-jitter 100 \
-    --preload \
-    --access-logfile - \
-    --error-logfile - \
-    --log-level info \
-    FinanceTracker.wsgi:application
+exec gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 600 --access-logfile - --error-logfile - FinanceTracker.wsgi:application
