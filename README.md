@@ -1,221 +1,267 @@
-# Finance Tracker - Personal Budgeting Application
+# 💰 Finance Tracker
 
-A comprehensive Django-based personal finance tracker and budgeting application built for a Software Engineering course focused on AI-driven development. This application helps users track income, expenses, and manage budgets across different categories.
+A modern, cloud-native personal finance management application built with Django and deployed on Azure Container Apps.
 
-## Features
+[![CI/CD Pipeline](https://github.com/kosek-g/10xdev/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/kosek-g/10xdev/actions/workflows/ci-cd.yml)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://python.org)
+[![Django](https://img.shields.io/badge/django-5.2.6-green.svg)](https://djangoproject.com)
+[![Azure](https://img.shields.io/badge/azure-container_apps-blue.svg)](https://azure.microsoft.com/en-us/services/container-apps/)
 
-### ✅ Core Functionality
-- **User Authentication**: Secure registration, login, and logout
-- **Transaction Management**: Full CRUD operations for income and expense tracking
-- **Category Management**: User-specific categories for organizing transactions
-- **Budget Tracking**: Set spending limits and monitor budget usage
-- **Dashboard Analytics**: Real-time financial overview with balance calculations
+## 🌟 Features
 
-### ✅ Technical Requirements Met
-- **Django 5.x**: Latest stable Django framework
-- **SQLite/PostgreSQL/MySQL Support**: Configurable database backends
-- **User Access Control**: All data is user-specific with proper authorization
-- **Class-Based Views**: Modern Django CBV implementation
-- **Responsive UI**: Bootstrap 5 with crispy forms
-- **Comprehensive Testing**: Unit tests for core business logic
-- **CI/CD Ready**: Docker containerization and GitHub Actions workflow
+### 💸 Transaction Management
+- **Income & Expense Tracking**: Record all your financial transactions with detailed categorization
+- **Smart Categories**: Organize transactions with custom categories for better insights
+- **Real-time Balance**: Instantly see your current financial position
 
-## Quick Start
+### 📊 Budget Planning & Analytics
+- **Budget Creation**: Set spending limits for different categories
+- **Budget Monitoring**: Track progress with visual progress bars and alerts
+- **Overspend Alerts**: Get notified when you exceed category budgets
+- **Expense Analysis**: View top spending categories and patterns
+
+### 🎨 Modern UI/UX
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+- **Custom Color Scheme**: Professional design with intuitive color coding
+- **Bootstrap 5**: Clean, modern interface with smooth interactions
+- **Dark Navigation**: Sleek dark grey navigation bar
+
+### 🔐 Security & Authentication
+- **User Authentication**: Secure login/logout system
+- **Data Privacy**: Each user's financial data is completely isolated
+- **Session Management**: Secure session handling
+
+## 🚀 Live Demo
+
+- **Production**: [https://finance-tracker-prod.blackdune-24f7be94.eastus.azurecontainerapps.io](https://finance-tracker-prod.blackdune-24f7be94.eastus.azurecontainerapps.io)
+- **Staging**: [https://finance-tracker-staging.blackdune-24f7be94.eastus.azurecontainerapps.io](https://finance-tracker-staging.blackdune-24f7be94.eastus.azurecontainerapps.io)
+
+## 🛠️ Technology Stack
+
+### Backend
+- **Django 5.2.6**: High-level Python web framework
+- **PostgreSQL**: Robust relational database with Azure Flexible Server
+- **Django REST Framework**: API development (extensible)
+
+### Frontend
+- **Bootstrap 5**: Responsive CSS framework
+- **Bootstrap Icons**: Comprehensive icon library
+- **Vanilla JavaScript**: Lightweight client-side interactions
+
+### DevOps & Infrastructure
+- **Azure Container Apps**: Serverless container hosting with auto-scaling
+- **Azure Container Registry**: Private container image registry
+- **GitHub Actions**: Automated CI/CD pipeline
+- **Docker**: Containerized deployment
+
+### Development Tools
+- **Gunicorn**: Production WSGI server
+- **Coverage.py**: Test coverage reporting
+- **Bandit**: Security linting
+- **Safety**: Dependency vulnerability scanning
+
+## 📱 Screenshots
+
+### Dashboard Overview
+The main dashboard provides a comprehensive view of your financial health:
+- **Income/Expense Cards**: Color-coded summary cards with custom styling
+- **Net Balance**: Dynamic color coding (positive/negative)
+- **Budget Progress**: Visual budget tracking with progress bars
+- **Recent Transactions**: Quick access to latest activities
+- **Quick Actions**: One-click access to common tasks
+
+### Features Highlights
+- **Smart Categorization**: Organize transactions by custom categories
+- **Budget Monitoring**: Set limits and track spending patterns
+- **Responsive Design**: Perfect experience on any device
+- **User-Friendly Interface**: Intuitive navigation and clean design
+
+## 🏗️ Architecture
+
+### Application Architecture
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   GitHub Repo   │    │  Azure Container │    │   PostgreSQL    │
+│                 │───▶│      Apps        │───▶│  Flexible       │
+│  (Source Code)  │    │                  │    │   Server        │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                        │
+         ▼                        ▼
+┌─────────────────┐    ┌──────────────────┐
+│  GitHub Actions │    │  Azure Container │
+│   (CI/CD)       │───▶│    Registry      │
+│                 │    │                  │
+└─────────────────┘    └──────────────────┘
+```
+
+### CI/CD Pipeline
+1. **Code Push** → Triggers automated pipeline
+2. **Testing** → Unit tests, security scans, coverage reports
+3. **Build** → Docker image creation and tagging
+4. **Registry** → Push to Azure Container Registry
+5. **Deploy** → Automated deployment to staging and production
+6. **Verification** → Health checks and smoke tests
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.12+
-- Django 5.x
-- Git
+- Python 3.11+
+- PostgreSQL (or use SQLite for development)
+- Docker (optional, for containerized development)
 
-### Installation
+### Local Development Setup
 
 1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd FinanceTracker
-```
+   ```bash
+   git clone https://github.com/kosek-g/10xdev.git
+   cd 10xdev
+   ```
 
-2. **Set up virtual environment**
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
+2. **Create virtual environment**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
 
 3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables**
+   ```bash
+   export SECRET_KEY="your-secret-key-here"
+   export DEBUG=True
+   export DB_ENGINE=django.db.backends.sqlite3
+   export DB_NAME=db.sqlite3
+   ```
+
+5. **Run migrations**
+   ```bash
+   python manage.py migrate
+   ```
+
+6. **Create superuser**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+7. **Start development server**
+   ```bash
+   python manage.py runserver
+   ```
+
+8. **Access the application**
+   - Open http://localhost:8000 in your browser
+   - Login with your superuser credentials
+
+### Docker Development (Alternative)
+
+1. **Build and run with Docker**
+   ```bash
+   docker build -t finance-tracker .
+   docker run -p 8000:8000 -e DEBUG=True finance-tracker
+   ```
+
+## 🧪 Testing
+
+### Run Test Suite
 ```bash
-pip install -r requirements.txt
+# Run all tests
+python manage.py test
+
+# Run with coverage
+coverage run --source='.' manage.py test
+coverage report
+coverage html  # Generate HTML report
 ```
 
-4. **Run migrations**
+### Security Testing
 ```bash
-python manage.py migrate
+# Security vulnerability scan
+safety check -r requirements.txt
+
+# Security linting
+bandit -r . -f json
 ```
 
-5. **Create superuser (optional)**
-```bash
-python manage.py createsuperuser
-```
+## 📊 Project Statistics
 
-6. **Start development server**
-```bash
-python manage.py runserver
-```
+- **21 Unit Tests**: Comprehensive test coverage
+- **Models**: 3 core models (Transaction, Category, Budget)
+- **Views**: 15+ functional views
+- **Templates**: Responsive, mobile-first design
+- **Security**: Automated security scanning and updates
 
-7. **Access the application**
-- Main app: http://localhost:8000/
-- Admin panel: http://localhost:8000/admin/
+## 🔧 Configuration
 
-## Usage
+### Environment Variables
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `SECRET_KEY` | Django secret key | ✅ |
+| `DEBUG` | Debug mode (True/False) | ✅ |
+| `AZURE_POSTGRESQL_HOST` | Database host | ✅ |
+| `AZURE_POSTGRESQL_NAME` | Database name | ✅ |
+| `AZURE_POSTGRESQL_USER` | Database user | ✅ |
+| `AZURE_POSTGRESQL_PASSWORD` | Database password | ✅ |
 
-### Getting Started
-1. **Register**: Create a new account at `/register/`
-2. **Add Categories**: Create categories like "Salary", "Groceries", "Entertainment"
-3. **Record Transactions**: Add your income and expenses
-4. **Set Budgets**: Define spending limits for categories
-5. **Monitor Dashboard**: View your financial overview and budget progress
+### Azure Deployment
+The application is configured for automatic deployment to Azure Container Apps with:
+- **Auto-scaling**: Scales based on demand (1-5 replicas)
+- **Health Checks**: Automated health monitoring
+- **Zero-downtime deployments**: Rolling updates
+- **SSL/TLS**: Automatic HTTPS certificates
 
-### Core Workflows
+## 📈 Monitoring & Health
 
-**Adding a Transaction:**
-1. Navigate to "Add Transaction"
-2. Select type (Income/Expense)
-3. Enter amount, date, category, and description
-4. Save to update your financial records
+### Health Check Endpoint
+- **URL**: `/health/`
+- **Purpose**: Container health verification
+- **Response**: HTTP 200 with "Finance Tracker is healthy!"
 
-**Budget Management:**
-1. Go to "Budgets" section
-2. Create budgets for specific categories
-3. Set spending limits and time periods
-4. Monitor usage on the dashboard
+### Application Monitoring
+- **Azure Monitor**: Integrated application insights
+- **Container Logs**: Real-time logging and debugging
+- **Performance Metrics**: CPU, memory, and request metrics
 
-## Architecture
+## 🤝 Contributing
 
-### Models
-- **Category**: User-specific transaction categories
-- **Transaction**: Income and expense records with user association
-- **Budget**: Spending limits per category with usage tracking
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-### Views
-- **Dashboard**: Financial summary with business logic calculations
-- **Transaction CRUD**: Complete transaction management
-- **Category Management**: User category organization
-- **Budget Tracking**: Budget creation and monitoring
+### Development Guidelines
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass (`python manage.py test`)
+6. Commit your changes (`git commit -m 'Add amazing feature'`)
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
 
-### Security Features
-- User authentication required for all financial views
-- Data isolation (users can only access their own data)
-- CSRF protection on all forms
-- Secure password handling
+### Code Quality
+- Follow PEP 8 Python style guidelines
+- Add docstrings for new functions and classes
+- Maintain test coverage above 80%
+- Security scan must pass (bandit, safety)
 
-## Testing
+## 📝 License
 
-Run the test suite:
-```bash
-python manage.py test finance
-```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-The test suite includes:
-- Model validation tests
-- Core business logic verification (monthly balance calculation)
-- User access control verification
-- Authentication requirement tests
+## 👨‍💻 Author
 
-## Docker Support
+**Grzegorz Kosek** - [10xDev](https://github.com/kosek-g)
 
-### Build and run with Docker:
-```bash
-# Build the image
-docker build -t financetracker .
+- Email: ko51uu@live.com
+- GitHub: [@kosek-g](https://github.com/kosek-g)
 
-# Run the container
-docker run -p 8000:8000 financetracker
-```
+## 🙏 Acknowledgments
 
-### Environment Variables for Production:
-```bash
-SECRET_KEY=your-secret-key
-DEBUG=False
-ALLOWED_HOSTS=yourdomain.com
-DATABASE_ENGINE=postgresql  # or mysql
-DATABASE_NAME=financetracker
-DATABASE_USER=your-db-user
-DATABASE_PASSWORD=your-db-password
-DATABASE_HOST=your-db-host
-DATABASE_PORT=5432
-```
-
-## CI/CD Pipeline
-
-The project includes a GitHub Actions workflow (`.github/workflows/django.yml`) that:
-
-1. **Tests**: Runs unit tests with PostgreSQL
-2. **Build**: Creates Docker image
-3. **Validation**: Performs basic health checks
-4. **Deploy**: (Template for production deployment)
-
-## Database Configuration
-
-### SQLite (Default - Development)
-No additional configuration needed. Database file: `db.sqlite3`
-
-### PostgreSQL (Production)
-```bash
-export DATABASE_ENGINE=postgresql
-export DATABASE_NAME=financetracker
-export DATABASE_USER=postgres
-export DATABASE_PASSWORD=your_password
-export DATABASE_HOST=localhost
-export DATABASE_PORT=5432
-```
-
-### MySQL (Production)
-```bash
-export DATABASE_ENGINE=mysql
-export DATABASE_NAME=financetracker
-export DATABASE_USER=root
-export DATABASE_PASSWORD=your_password
-export DATABASE_HOST=localhost
-export DATABASE_PORT=3306
-```
-
-## Project Structure
-
-```
-FinanceTracker/
-├── FinanceTracker/          # Project configuration
-│   ├── settings.py          # Django settings with environment support
-│   ├── urls.py              # Main URL configuration
-│   └── wsgi.py              # WSGI configuration
-├── finance/                 # Main application
-│   ├── models.py            # Category, Transaction, Budget models
-│   ├── views.py             # CBVs and dashboard logic
-│   ├── forms.py             # Django forms with crispy styling
-│   ├── urls.py              # App URL patterns
-│   ├── admin.py             # Admin interface configuration
-│   └── tests.py             # Comprehensive test suite
-├── templates/               # Django templates
-│   ├── base.html            # Base template with Bootstrap
-│   ├── registration/        # Auth templates
-│   └── finance/             # App-specific templates
-├── requirements.txt         # Python dependencies
-├── Dockerfile              # Container configuration
-└── .github/workflows/      # CI/CD pipeline
-```
-
-## Contributing
-
-This project was developed as part of a Software Engineering course assignment focusing on AI-assisted development practices. The implementation demonstrates:
-
-- Modern Django development patterns
-- Comprehensive testing strategies
-- CI/CD best practices
-- Security-first approach
-- Responsive UI design
-
-## License
-
-This project is developed for educational purposes as part of a Software Engineering course assignment.
+- Django community for the excellent framework
+- Azure team for robust cloud services
+- Bootstrap team for beautiful UI components
+- Open source community for inspiration and tools
 
 ---
 
-**Built with Django 5.x | Bootstrap 5 | Docker | CI/CD Ready**
+⭐ **If you found this project helpful, please give it a star!** ⭐
