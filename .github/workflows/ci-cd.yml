@@ -120,7 +120,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     
     outputs:
-      image-tag: ${{ steps.meta.outputs.tags }}
+      image-tag: ${{ steps.set-output.outputs.image-tag }}
       image-digest: ${{ steps.build.outputs.digest }}
       
     steps:
@@ -155,10 +155,30 @@ jobs:
         build-args: |
           BUILDKIT_INLINE_CACHE=1
 
+    - name: Set single image tag output
+      id: set-output
+      run: |
+        # Extract the first tag (preferring latest, then main, then first available)
+        TAGS="${{ steps.meta.outputs.tags }}"
+        echo "All tags generated: $TAGS"
+        
+        # Try to find latest tag first (for main branch)
+        LATEST_TAG=$(echo "$TAGS" | grep ":latest" | head -n1)
+        if [ -n "$LATEST_TAG" ]; then
+          IMAGE_TAG="$LATEST_TAG"
+        else
+          # Otherwise use the first tag
+          IMAGE_TAG=$(echo "$TAGS" | head -n1)
+        fi
+        
+        echo "Selected image tag: $IMAGE_TAG"
+        echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
     - name: Output image information
       run: |
         echo "Built and pushed the following tags:"
         echo "${{ steps.meta.outputs.tags }}"
+        echo "Selected tag for deployment: ${{ steps.set-output.outputs.image-tag }}"
         echo "Image digest: ${{ steps.build.outputs.digest }}"
 
     - name: Scan Docker image for vulnerabilities
@@ -198,13 +218,15 @@ jobs:
 
     - name: Deploy to Azure Container Apps (Staging)
       run: |
-        # Extract the first tag from the build output (usually the branch name or latest)
-        FULL_TAGS="${{ needs.build-and-push.outputs.image-tag }}"
-        echo "Available tags: $FULL_TAGS"
-        
-        # Get the first tag (main branch should have latest tag)
-        IMAGE_TAG=$(echo "$FULL_TAGS" | head -n1 | tr -d '\n')
+        # Use the image tag from build output
+        IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
         echo "Using image tag: $IMAGE_TAG"
+        
+        # Verify we have a valid image tag
+        if [ -z "$IMAGE_TAG" ]; then
+          echo "ERROR: No image tag provided from build job"
+          exit 1
+        fi
         
         # Update container app with new image and environment
         az containerapp update \
@@ -267,13 +289,15 @@ jobs:
 
     - name: Create or Update Production Container App
       run: |
-        # Extract the first tag from the build output
-        FULL_TAGS="${{ needs.build-and-push.outputs.image-tag }}"
-        echo "Available tags: $FULL_TAGS"
-        
-        # Get the first tag (should be latest for main branch)
-        IMAGE_TAG=$(echo "$FULL_TAGS" | head -n1 | tr -d '\n')
+        # Use the image tag from build output
+        IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
         echo "Using image tag: $IMAGE_TAG"
+        
+        # Verify we have a valid image tag
+        if [ -z "$IMAGE_TAG" ]; then
+          echo "ERROR: No image tag provided from build job"
+          exit 1
+        fi
         
         # Check if production container app exists
         if az containerapp show --name finance-tracker-prod --resource-group ${{ env.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
