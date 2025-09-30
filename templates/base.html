@@ -34,13 +34,44 @@
             font-size: 2rem;
             opacity: 0.8;
         }
+        .bg-custom-income {
+            background-color: #7bc28c !important; /* Custom green */
+        }
+        .bg-custom-expense {
+            background-color: #d6616c !important; /* Custom red */
+        }
+        .bg-custom-balance-positive {
+            background-color: #539be7 !important; /* Custom blue for positive balance */
+        }
+        .bg-custom-balance-negative {
+            background-color: #e6c76a !important; /* Custom yellow for negative balance */
+        }
+        .btn-custom-income {
+            background-color: #7bc28c !important;
+            border-color: #7bc28c !important;
+            color: white !important;
+        }
+        .btn-custom-income:hover {
+            background-color: #6ba77c !important;
+            border-color: #6ba77c !important;
+            color: white !important;
+        }
+        .btn-custom-income:focus {
+            background-color: #6ba77c !important;
+            border-color: #6ba77c !important;
+            color: white !important;
+            box-shadow: 0 0 0 0.2rem rgba(123, 194, 140, 0.5) !important;
+        }
+        .bg-custom-navbar {
+            background-color: #4b5258 !important; /* Dark grey navbar */
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-custom-navbar">
         <div class="container">
             <a class="navbar-brand" href="{% url 'dashboard' %}">
                 <i class="bi bi-wallet2"></i> Finance Tracker

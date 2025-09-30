@@ -11,7 +11,7 @@
 <!-- Financial Summary Cards -->
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="card card-stat bg-success text-white">
+        <div class="card card-stat bg-custom-income text-white">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
@@ -25,7 +25,7 @@
     </div>
     
     <div class="col-md-4">
-        <div class="card card-stat bg-danger text-white">
+        <div class="card card-stat bg-custom-expense text-white">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
@@ -39,7 +39,7 @@
     </div>
     
     <div class="col-md-4">
-        <div class="card card-stat {% if current_balance >= 0 %}bg-primary{% else %}bg-warning{% endif %} text-white">
+        <div class="card card-stat {% if current_balance >= 0 %}bg-custom-balance-positive{% else %}bg-custom-balance-negative{% endif %} text-white">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
@@ -133,7 +133,7 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="{% url 'transaction-create' %}" class="btn btn-success">
+                    <a href="{% url 'transaction-create' %}" class="btn btn-custom-income">
                         <i class="bi bi-plus-circle"></i> Add Transaction
                     </a>
                     <a href="{% url 'category-create' %}" class="btn btn-outline-secondary">

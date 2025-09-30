@@ -37,10 +37,6 @@ def register_view(request):
             # Create default categories for new user
             default_categories = [
                 {'name': 'Salary', 'description': 'Monthly salary and wages'},
-                {'name': 'Groceries', 'description': 'Food and household items'},
-                {'name': 'Transportation', 'description': 'Gas, public transit, car expenses'},
-                {'name': 'Entertainment', 'description': 'Movies, dining out, hobbies'},
-                {'name': 'Utilities', 'description': 'Electricity, water, internet, phone'},
             ]
             
             for cat_data in default_categories:
