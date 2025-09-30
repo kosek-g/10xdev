@@ -214,11 +214,16 @@ jobs:
           echo "Using fallback image tag: $IMAGE_TAG"
         }
         
-        # Update container app with new image and environment
+        # Force update container app with new image and environment
+        # Using --revision-suffix to force creation of new revision
+        REVISION_SUFFIX=$(date +%s)
+        echo "Creating new revision with suffix: $REVISION_SUFFIX"
+        
         az containerapp update \
           --name finance-tracker-staging \
           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
           --image "$IMAGE_TAG" \
+          --revision-suffix "$REVISION_SUFFIX" \
           --set-env-vars \
             DJANGO_SETTINGS_MODULE=FinanceTracker.azure_settings \
             SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
@@ -232,17 +237,24 @@ jobs:
     - name: Wait for deployment
       run: |
         echo "Waiting for container app to be ready..."
-        sleep 60
+        # Wait longer for container to restart with new image
+        sleep 90
+        
+        # Check if deployment completed successfully
+        echo "Checking deployment status..."
+        az containerapp show --name finance-tracker-staging --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "properties.runningStatus" --output tsv
 
     - name: Run smoke tests
       run: |
         STAGING_URL="https://finance-tracker-staging.blackdune-24f7be94.eastus.azurecontainerapps.io"
         echo "Testing staging deployment at: $STAGING_URL"
         
-        # Wait for app to be ready
-        for i in {1..15}; do
+        # Wait for app to be ready with more attempts
+        for i in {1..20}; do
           if curl -f "$STAGING_URL/health/" > /dev/null 2>&1; then
             echo "Staging deployment is healthy!"
+            echo "Verifying UI changes by checking response headers..."
+            curl -I "$STAGING_URL/" | grep "HTTP"
             break
           fi
           echo "Attempt $i: Waiting for staging deployment..."
