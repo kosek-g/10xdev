@@ -194,6 +194,7 @@ jobs:
           --location ${{ env.AZURE_LOCATION }} \
           --dns-name-label finance-tracker-staging-${{ github.run_number }} \
           --ports 8000 \
+          --os-type Linux \
           --registry-login-server ${{ env.REGISTRY }} \
           --registry-username ${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }} \
           --registry-password ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }} \
@@ -271,6 +272,7 @@ jobs:
           --location ${{ env.AZURE_LOCATION }} \
           --dns-name-label finance-tracker-prod \
           --ports 8000 \
+          --os-type Linux \
           --registry-login-server ${{ env.REGISTRY }} \
           --registry-username ${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }} \
           --registry-password ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }} \
