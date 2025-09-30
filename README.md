@@ -224,19 +224,6 @@ The application is configured for automatic deployment to Azure Container Apps w
 - **Container Logs**: Real-time logging and debugging
 - **Performance Metrics**: CPU, memory, and request metrics
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-### Development Guidelines
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass (`python manage.py test`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
 
 ### Code Quality
 - Follow PEP 8 Python style guidelines
@@ -250,18 +237,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Grzegorz Kosek** - [10xDev](https://github.com/kosek-g)
+**Grzegorz Kosek**
 
-- Email: ko51uu@live.com
+- Email: kosek.grzegorzz@gmai.com
 - GitHub: [@kosek-g](https://github.com/kosek-g)
 
-## 🙏 Acknowledgments
-
-- Django community for the excellent framework
-- Azure team for robust cloud services
-- Bootstrap team for beautiful UI components
-- Open source community for inspiration and tools
-
----
-
-⭐ **If you found this project helpful, please give it a star!** ⭐
