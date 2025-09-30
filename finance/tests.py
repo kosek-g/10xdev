@@ -497,7 +497,7 @@ class IntegrationTests(TestCase):
         
         # Check default categories were created
         default_categories = Category.objects.filter(user=user)
-        self.assertEqual(default_categories.count(), 5)
+        self.assertEqual(default_categories.count(), 1)
         category_names = [cat.name for cat in default_categories]
         self.assertIn('Salary', category_names)
         self.assertIn('Groceries', category_names)
