@@ -45,11 +45,12 @@ WORKDIR /app
 # Copy project files
 COPY --chown=appuser:appuser . /app/
 
+# Create necessary directories as root, then change ownership
+RUN mkdir -p /app/staticfiles /app/mediafiles && \
+    chown -R appuser:appuser /app/staticfiles /app/mediafiles
+
 # Switch to non-root user
 USER appuser
-
-# Create necessary directories
-RUN mkdir -p /app/staticfiles /app/mediafiles
 
 # Set Django settings for production
 ENV DJANGO_SETTINGS_MODULE=FinanceTracker.azure_settings

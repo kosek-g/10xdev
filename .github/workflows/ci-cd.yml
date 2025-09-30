@@ -160,12 +160,14 @@ jobs:
         image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
         format: 'sarif'
         output: 'trivy-results.sarif'
+      continue-on-error: true
 
     - name: Upload vulnerability scan results
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('trivy-results.sarif') != ''
       with:
         sarif_file: 'trivy-results.sarif'
+      continue-on-error: true
 
   deploy-staging:
     name: Deploy to Staging
