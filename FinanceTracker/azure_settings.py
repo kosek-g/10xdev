@@ -18,6 +18,8 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.azurewebsites.net',
+    '.azurecontainer.io',
+    '*.azurecontainer.io',
     os.environ.get('WEBSITE_HOSTNAME', '')
 ]
 
@@ -77,7 +79,9 @@ if 'AZURE_POSTGRESQL_HOST' in os.environ:
             'PORT': '5432',
             'OPTIONS': {
                 'sslmode': 'require',
-            }
+                'connect_timeout': 60,
+            },
+            'CONN_MAX_AGE': 0,
         }
     }
 else:
@@ -114,7 +118,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Only add STATICFILES_DIRS if the directory exists
+import os
+static_dir = BASE_DIR / 'static'
+if os.path.exists(static_dir):
+    STATICFILES_DIRS = [static_dir]
+else:
+    STATICFILES_DIRS = []
 
 # Use WhiteNoise for static file serving
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

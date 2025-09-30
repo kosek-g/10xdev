@@ -10,9 +10,22 @@ set -e
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-# Wait for database to be ready
+# Wait for database to be ready with retries
 echo "Waiting for database connection..."
-python manage.py check --database default
+for i in {1..30}; do
+    echo "Database connection attempt $i..."
+    if python manage.py check --database default; then
+        echo "Database is ready!"
+        break
+    else
+        echo "Database not ready, waiting 5 seconds..."
+        sleep 5
+    fi
+    if [ $i -eq 30 ]; then
+        echo "Database connection failed after 30 attempts"
+        exit 1
+    fi
+done
 
 # Apply database migrations
 echo "Applying database migrations..."
