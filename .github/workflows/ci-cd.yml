@@ -194,6 +194,9 @@ jobs:
           --location ${{ env.AZURE_LOCATION }} \
           --dns-name-label finance-tracker-staging-${{ github.run_number }} \
           --ports 8000 \
+          --registry-login-server ${{ env.REGISTRY }} \
+          --registry-username ${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }} \
+          --registry-password ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }} \
           --environment-variables \
             DJANGO_SETTINGS_MODULE=FinanceTracker.azure_settings \
             SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
@@ -268,6 +271,9 @@ jobs:
           --location ${{ env.AZURE_LOCATION }} \
           --dns-name-label finance-tracker-prod \
           --ports 8000 \
+          --registry-login-server ${{ env.REGISTRY }} \
+          --registry-username ${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }} \
+          --registry-password ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }} \
           --environment-variables \
             DJANGO_SETTINGS_MODULE=FinanceTracker.azure_settings \
             SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
