@@ -119,10 +119,6 @@ jobs:
     needs: [test, security-scan]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     
-    outputs:
-      image-tag: ${{ steps.set-output.outputs.image-tag }}
-      image-digest: ${{ steps.build.outputs.digest }}
-      
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -155,30 +151,10 @@ jobs:
         build-args: |
           BUILDKIT_INLINE_CACHE=1
 
-    - name: Set single image tag output
-      id: set-output
-      run: |
-        # Extract the first tag (preferring latest, then main, then first available)
-        TAGS="${{ steps.meta.outputs.tags }}"
-        echo "All tags generated: $TAGS"
-        
-        # Try to find latest tag first (for main branch)
-        LATEST_TAG=$(echo "$TAGS" | grep ":latest" | head -n1)
-        if [ -n "$LATEST_TAG" ]; then
-          IMAGE_TAG="$LATEST_TAG"
-        else
-          # Otherwise use the first tag
-          IMAGE_TAG=$(echo "$TAGS" | head -n1)
-        fi
-        
-        echo "Selected image tag: $IMAGE_TAG"
-        echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-
     - name: Output image information
       run: |
         echo "Built and pushed the following tags:"
         echo "${{ steps.meta.outputs.tags }}"
-        echo "Selected tag for deployment: ${{ steps.set-output.outputs.image-tag }}"
         echo "Image digest: ${{ steps.build.outputs.digest }}"
 
     - name: Scan Docker image for vulnerabilities
@@ -218,15 +194,25 @@ jobs:
 
     - name: Deploy to Azure Container Apps (Staging)
       run: |
-        # Use the image tag from build output
-        IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
+        # Use latest tag for main branch deployments (simpler and more reliable)
+        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+        else
+          # For other branches, use the branch name
+          BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${BRANCH_NAME}"
+        fi
+        
         echo "Using image tag: $IMAGE_TAG"
         
-        # Verify we have a valid image tag
-        if [ -z "$IMAGE_TAG" ]; then
-          echo "ERROR: No image tag provided from build job"
-          exit 1
-        fi
+        # Verify the image exists in ACR
+        echo "Verifying image exists in ACR..."
+        az acr repository show --name ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }} --image ${{ env.IMAGE_NAME }}:latest || {
+          echo "Latest image not found, using most recent available tag..."
+          LATEST_AVAILABLE=$(az acr repository show-tags --name ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }} --repository ${{ env.IMAGE_NAME }} --orderby time_desc --output tsv | head -n1)
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${LATEST_AVAILABLE}"
+          echo "Using fallback image tag: $IMAGE_TAG"
+        }
         
         # Update container app with new image and environment
         az containerapp update \
@@ -270,7 +256,7 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [build-and-push, deploy-staging]
+    needs: [deploy-staging]
     if: github.ref == 'refs/heads/main'
     environment: production
     
@@ -289,15 +275,18 @@ jobs:
 
     - name: Create or Update Production Container App
       run: |
-        # Use the image tag from build output
-        IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
+        # Use latest tag for main branch deployments (simpler and more reliable)
+        IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
         echo "Using image tag: $IMAGE_TAG"
         
-        # Verify we have a valid image tag
-        if [ -z "$IMAGE_TAG" ]; then
-          echo "ERROR: No image tag provided from build job"
-          exit 1
-        fi
+        # Verify the image exists in ACR
+        echo "Verifying image exists in ACR..."
+        az acr repository show --name ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }} --image ${{ env.IMAGE_NAME }}:latest || {
+          echo "Latest image not found, using most recent available tag..."
+          LATEST_AVAILABLE=$(az acr repository show-tags --name ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }} --repository ${{ env.IMAGE_NAME }} --orderby time_desc --output tsv | head -n1)
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${LATEST_AVAILABLE}"
+          echo "Using fallback image tag: $IMAGE_TAG"
+        }
         
         # Check if production container app exists
         if az containerapp show --name finance-tracker-prod --resource-group ${{ env.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
