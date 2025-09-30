@@ -97,34 +97,40 @@ Value: your-database-password
    - `AZURE_CONTAINER_REGISTRY_USERNAME`: (from above command)
    - `AZURE_CONTAINER_REGISTRY_PASSWORD`: (from above command)
 
-### Step 3: Create PostgreSQL Database
+### Step 3: Create PostgreSQL Flexible Server Database
 
-1. **Create PostgreSQL Server:**
+1. **Create PostgreSQL Flexible Server (CHEAPEST):**
    ```bash
-   az postgres server create \
+   # B1ms = 1 vCore, 2GB RAM - absolute cheapest!
+   # 32GB storage = minimum allowed
+   # Backup retention = 7 days (minimum)
+   az postgres flexible-server create \
      --resource-group finance-tracker-rg \
      --name finance-tracker-db \
      --location eastus \
      --admin-user financeadmin \
      --admin-password "YourSecurePassword123!" \
-     --sku-name B_Gen5_1 \
-     --version 11
+     --sku-name Standard_B1ms \
+     --tier Burstable \
+     --storage-size 32 \
+     --version 15 \
+     --backup-retention 7
    ```
 
 2. **Create Database:**
    ```bash
-   az postgres db create \
+   az postgres flexible-server db create \
      --resource-group finance-tracker-rg \
      --server-name finance-tracker-db \
-     --name financetracker
+     --database-name financetracker
    ```
 
 3. **Configure Firewall:**
    ```bash
-   az postgres server firewall-rule create \
+   az postgres flexible-server firewall-rule create \
      --resource-group finance-tracker-rg \
-     --server finance-tracker-db \
-     --name AllowAzureServices \
+     --name finance-tracker-db \
+     --rule-name AllowAzureServices \
      --start-ip-address 0.0.0.0 \
      --end-ip-address 0.0.0.0
    ```
