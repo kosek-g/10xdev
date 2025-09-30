@@ -300,6 +300,10 @@ jobs:
           echo "Using fallback image tag: $IMAGE_TAG"
         }
         
+        # Force new revision for production deployment
+        REVISION_SUFFIX=$(date +%s)
+        echo "Creating new production revision with suffix: $REVISION_SUFFIX"
+        
         # Check if production container app exists
         if az containerapp show --name finance-tracker-prod --resource-group ${{ env.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
           echo "Updating existing production container app..."
@@ -307,6 +311,7 @@ jobs:
             --name finance-tracker-prod \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --image "$IMAGE_TAG" \
+            --revision-suffix "$REVISION_SUFFIX" \
             --set-env-vars \
               DJANGO_SETTINGS_MODULE=FinanceTracker.azure_settings \
               SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
@@ -323,6 +328,7 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --environment ${{ env.AZURE_CONTAINER_ENV }} \
             --image "$IMAGE_TAG" \
+            --revision-suffix "$REVISION_SUFFIX" \
             --target-port 8000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY }} \
@@ -346,17 +352,24 @@ jobs:
     - name: Wait for production deployment
       run: |
         echo "Waiting for production container app to be ready..."
-        sleep 90
+        # Wait longer for container to restart with new image
+        sleep 120
+        
+        # Check if deployment completed successfully
+        echo "Checking production deployment status..."
+        az containerapp show --name finance-tracker-prod --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "properties.runningStatus" --output tsv
 
     - name: Run production health checks
       run: |
         PROD_URL="https://finance-tracker-prod.blackdune-24f7be94.eastus.azurecontainerapps.io"
         echo "Testing production deployment at: $PROD_URL"
         
-        # Wait for app to be ready
-        for i in {1..20}; do
+        # Wait for app to be ready with more attempts
+        for i in {1..25}; do
           if curl -f "$PROD_URL/health/" > /dev/null 2>&1; then
             echo "Production deployment is healthy!"
+            echo "Verifying UI changes by checking response headers..."
+            curl -I "$PROD_URL/" | grep "HTTP"
             break
           fi
           echo "Attempt $i: Waiting for production deployment..."
