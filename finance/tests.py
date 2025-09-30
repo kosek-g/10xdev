@@ -500,7 +500,6 @@ class IntegrationTests(TestCase):
         self.assertEqual(default_categories.count(), 1)
         category_names = [cat.name for cat in default_categories]
         self.assertIn('Salary', category_names)
-        self.assertIn('Groceries', category_names)
         
     def test_transaction_and_budget_workflow(self):
         """Test creating transactions and budgets workflow"""
