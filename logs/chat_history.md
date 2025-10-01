@@ -1728,7 +1728,7 @@ You need to add these **exact** secrets to your GitHub repository:
    financetracker10xdev
    ```
 
-3. **AZURE_CONTAINER_REGISTRY_PASSWORD**
+3. **AZURE_CONTAINER_REGISTRY_PW**
    ```
    ```
 
@@ -1766,7 +1766,7 @@ Ran terminal command: cd /home/gkosek/repos/10xdev && git add . && git commit -m
 |-------------|-------|
 | `AZURE_CONTAINER_REGISTRY_NAME` | `financetracker10xdev` |
 | `AZURE_CONTAINER_REGISTRY_USERNAME` | `financetracker10xdev` |
-| `AZURE_CONTAINER_REGISTRY_PASSWORD` | `` |
+| `AZURE_CONTAINER_REGISTRY_PW` | `` |
 
 ### **Other Missing Secrets** (check if they exist):
 
@@ -1821,7 +1821,7 @@ The Azure Container Instances need explicit authentication to pull images from y
 Make sure you have these GitHub secrets configured (which you should have added earlier):
 
 - ✅ `AZURE_CONTAINER_REGISTRY_USERNAME`: `financetracker10xdev`
-- ✅ `AZURE_CONTAINER_REGISTRY_PASSWORD`: ``
+- ✅ `AZURE_CONTAINER_REGISTRY_PW`: ``
 - ✅ `AZURE_CONTAINER_REGISTRY_NAME`: `financetracker10xdev`
 
 **Plus the other deployment secrets:**
@@ -2118,7 +2118,7 @@ Ran terminal command: az containerapp create \
   --ingress external \
   --registry-server financetracker10xdev.azurecr.io \
   --registry-username financetracker10xdev \
-  --registry-password sss \
+  --registry-pW sss \
   --env-vars \
     DJANGO_SETTINGS_MODULE=FinanceTracker.azure_settings \
     SECRET_KEY="" \
